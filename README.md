@@ -12,6 +12,7 @@ sudo apt-get  update; sudo apt-get install  python-dev -y
 sudo apt-get install default-jre
 sudo apt-get install default-jdk
 
+################################
 
 #download proj4
 sudo wget http://download.osgeo.org/proj/proj-4.9.1.tar.gz
@@ -21,6 +22,7 @@ sudo ./configure
 sudo make
 sudo make install
 
+################################
 
 #download gdal
 sudo wget http://download.osgeo.org/gdal/1.11.2/gdal-1.11.2.tar.gz
@@ -43,7 +45,7 @@ JAVA_INCLUDE=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux" > \
 sudo make
 sudo make install
 
-
+################################
 
 #test openimaj
 cd /workspace
@@ -61,3 +63,5 @@ java -jar target/OpenIMAJ-Tutorial01-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 #set up eclipse
 mvn eclipse:eclipse
+
+################################
