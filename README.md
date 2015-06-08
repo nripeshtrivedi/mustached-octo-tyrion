@@ -44,6 +44,7 @@ JAVA_INCLUDE=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux" > \
 
 sudo make
 sudo make install
+sudo cp gdal.jar /usr/local/lib
 
 ################################
 
@@ -61,7 +62,16 @@ cd wamiNet
 mvn assembly:assembly
 java -jar target/OpenIMAJ-Tutorial01-1.0-SNAPSHOT-jar-with-dependencies.jar
 
+################################
+
 #set up eclipse
+cd ~/workspace/wamiNet
 mvn eclipse:eclipse
+#open eclipse and import existing project
+
+#add project variables
+# M2_REPO = ~/.m2/repository/
+# LD_LIBRARY_PATH = /usr/local/lib/
+#add gdal.jar to classpath with its native library = /usr/local/lib
 
 ################################
