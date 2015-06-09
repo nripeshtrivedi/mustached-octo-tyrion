@@ -76,8 +76,8 @@ java -jar target/wamiNet-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 ################################
 
-#port existing code
-cp -r ~/* ~/workspace/wamiNet/
+#port existing code/ set up git
+cp -r ~/mustached-octo-tyrion/* ~/workspace/wamiNet/
 git init
 git remote add origin https://github.com/aaceimmrttu/mustached-octo-tyrion.git
 git fetch
