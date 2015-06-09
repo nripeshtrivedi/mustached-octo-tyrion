@@ -42,6 +42,8 @@ sudo make
 sudo make install
 
 #modify java.opt to use the correct jvm path
+sudo cp /usr/local/src/gdal/gdal-1.11.2/swig/java/java.opt /usr/local/src/gdal/gdal-1.11.2/swig/java/java.opt.bak
+
 sudo echo 'JAVA_HOME = "/usr/lib/jvm/default-java"  
 JAVADOC=$(JAVA_HOME)/bin/javadoc 
 JAVAC=$(JAVA_HOME)/bin/javac 
