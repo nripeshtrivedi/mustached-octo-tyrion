@@ -1,16 +1,18 @@
 # mustached-octo-tyrion
 
 ```bash
-#how to install gdal with java, maven, and openimaj
+#how to install with gdal and openimaj
 
-#note sudo can be removed if have permissions for /usr/local 
+#note sudo can be removed if have write permissions for /usr/local 
 
-#update
+#dependencies
+sudo apt-get  update
+sudo apt-get install g++ gcc
 sudo apt-get install maven
 sudo apt-get install swig
-sudo apt-get  update; sudo apt-get install  python-dev -y
 sudo apt-get install default-jre
 sudo apt-get install default-jdk
+sudo apt-get install  python-dev -y
 
 ################################
 
