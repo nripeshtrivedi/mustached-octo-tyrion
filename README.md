@@ -13,7 +13,7 @@ sudo apt-get install swig
 sudo apt-get install default-jre
 sudo apt-get install default-jdk
 sudo apt-get install git
-sudo apt-get install  python-dev -y
+sudo apt-get install  python-dev -y #only needed if --with-python is used for gdal
 
 ################################
 
