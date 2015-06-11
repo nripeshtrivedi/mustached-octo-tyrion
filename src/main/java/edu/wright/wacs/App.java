@@ -174,8 +174,8 @@ public class App extends JFrame implements ActionListener{
 		int[] banks = new int[bandCount];
 		int[] offsets = new int[bandCount];
 		
-		int xsize = 4000;//6297;//poDataset.getRasterXSize();
-		int ysize = 4000;//5529;//poDataset.getRasterYSize();
+		int xsize = 2000;//6297;//poDataset.getRasterXSize();
+		int ysize = 2000;//5529;//poDataset.getRasterYSize();
 		int pixels = xsize * ysize;
 		int buf_type = 0, buf_size = 0;
 
@@ -331,7 +331,7 @@ public class App extends JFrame implements ActionListener{
 		LocalFeatureList<Keypoint> queryKeypoints = engine.findFeatures(query.flatten());
 		LocalFeatureList<Keypoint> targetKeypoints = engine.findFeatures(target.flatten());
 		
-		RobustAffineTransformEstimator modelFitter = new RobustAffineTransformEstimator(5.0, 15,new RANSAC.PercentageInliersStoppingCondition(0.5));
+		RobustAffineTransformEstimator modelFitter = new RobustAffineTransformEstimator(5.0, 1500,new RANSAC.PercentageInliersStoppingCondition(0.5));
 		LocalFeatureMatcher<Keypoint>	matcher = new ConsistentLocalFeatureMatcher2d<Keypoint>(new FastBasicKeypointMatcher<Keypoint>(8), modelFitter);
 
 		matcher.setModelFeatures(queryKeypoints);
@@ -342,17 +342,28 @@ public class App extends JFrame implements ActionListener{
 		
 		
 		MBFImage query2 = query.transform(modelFitter.getModel().getTransform());
+		int hei = Math.max(target.getHeight(),query2.getHeight());
+		int wth = Math.max(target.getWidth(),query2.getWidth());
+		System.out.println(hei + " " + wth);
 		
 		DisplayUtilities.display(ImageUtilities.createBufferedImageForDisplay(query2));
 		
-		System.out.println("subtracting...");		
+		System.out.println("subtracting...");	
+		System.out.println(target.getHeight() + " " + target.getWidth());
+		MBFImage target2 = target.paddingSymmetric(Math.abs(wth - target.getWidth()),0 , 0,Math.abs(hei - target.getHeight()));
+		System.out.println(target2.getHeight() + " " + target2.getWidth());
+		DisplayUtilities.display(target2);
+		System.out.println(query2.getHeight() + " " + query2.getWidth());
+				query2   = query2.paddingSymmetric(0, Math.abs(wth - query2.getWidth()), 0,Math.abs(hei - query2.getHeight()));
+		DisplayUtilities.display(query2);
+		System.out.println(query2.getHeight() + " " + query2.getWidth());
 		DisplayUtilities.display(target.subtract(query));
 		
 		System.out.println("display subtraction");
 		
 		DisplayUtilities.display(ImageUtilities.createBufferedImageForDisplay(consistentMatches));
 		
-		DisplayUtilities.display(ImageUtilities.createBufferedImageForDisplay(target.subtract(query2).abs()));
+		DisplayUtilities.display(ImageUtilities.createBufferedImageForDisplay(target2.subtract(query2).abs()));
 		
 		target.drawShape(query.getBounds().transform(modelFitter.getModel().getTransform().inverse()), 3,RGBColour.BLUE);
 		
