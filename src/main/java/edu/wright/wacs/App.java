@@ -181,8 +181,8 @@ public class App extends JFrame implements ActionListener {
 		int[] banks = new int[bandCount];
 		int[] offsets = new int[bandCount];
 
-		int xsize = 2000;// 6297;//poDataset.getRasterXSize();
-		int ysize = 2000;// 5529;//poDataset.getRasterYSize();
+		int xsize = 2000;// 6000;//6297;//poDataset.getRasterXSize();
+		int ysize = 2000; //5000;// 5529;//poDataset.getRasterYSize();
 		int pixels = xsize * ysize;
 		int buf_type = 0, buf_size = 0;
 
@@ -338,10 +338,12 @@ public class App extends JFrame implements ActionListener {
 	public BufferedImage subtract(File files[] ) {
 		MBFImage query = ImageUtilities.createMBFImage(openFile(files[0]), false);
 		MBFImage target = ImageUtilities.createMBFImage(openFile(files[1]), false);
-		MBFImage sub = ImageUtilities.createMBFImage(openFile(files[2]), false);
+		//MBFImage sub = ImageUtilities.createMBFImage(openFile(files[2]), false);
 		
-		DisplayUtilities.display("query", query);
-		DisplayUtilities.display("target", target);
+		DisplayUtilities.display(ImageUtilities
+				.createBufferedImageForDisplay( query),"query");
+		DisplayUtilities.display(ImageUtilities
+				.createBufferedImageForDisplay(target),"target");
 
 		/*
 		 * BasicBackgroundSubtract<MBFImage> test = new
@@ -362,8 +364,8 @@ public class App extends JFrame implements ActionListener {
 				.flatten());
 		LocalFeatureList<Keypoint> targetKeypoints = engine.findFeatures(target
 				.flatten());
-		LocalFeatureList<Keypoint> subKeypoints = engine.findFeatures(sub
-				.flatten());
+		//LocalFeatureList<Keypoint> subKeypoints = engine.findFeatures(sub
+			//	.flatten());
 
 		// System.out.println(queryKeypoints);
 
@@ -389,20 +391,20 @@ public class App extends JFrame implements ActionListener {
 		matcher.setModelFeatures(queryKeypoints);
 		matcher.findMatches(targetKeypoints);
 		
-		RobustAffineTransformEstimator submodelFitter = new RobustAffineTransformEstimator(
-				5.0, 200, new RANSAC.PercentageInliersStoppingCondition(0.5));
-		LocalFeatureMatcher<Keypoint> submatcher = new ConsistentLocalFeatureMatcher2d<Keypoint>(
-				new FastBasicKeypointMatcher<Keypoint>(8), modelFitter);
-
-		submatcher.setModelFeatures(subKeypoints);
-		submatcher.findMatches(targetKeypoints);
+//		RobustAffineTransformEstimator submodelFitter = new RobustAffineTransformEstimator(
+//				5.0, 200, new RANSAC.PercentageInliersStoppingCondition(0.5));
+//		LocalFeatureMatcher<Keypoint> submatcher = new ConsistentLocalFeatureMatcher2d<Keypoint>(
+//				new FastBasicKeypointMatcher<Keypoint>(8), modelFitter);
+//
+//		submatcher.setModelFeatures(subKeypoints);
+//		submatcher.findMatches(targetKeypoints);
 
 		MBFImage consistentMatches = MatchingUtilities.drawMatches(query,
 				target, matcher.getMatches(), RGBColour.RED);
 
 		MBFImage query2 = query.transform(modelFitter.getModel().getTransform()
 				.inverse());
-		MBFImage subimg = sub.transform(submodelFitter.getModel().getTransform().inverse());
+//		MBFImage subimg = sub.transform(submodelFitter.getModel().getTransform().inverse());
 		
 		
 		
@@ -411,7 +413,8 @@ public class App extends JFrame implements ActionListener {
 		int wth = Math.max(target.getWidth(), query2.getWidth());
 		System.out.println(hei + " " + wth);
 
-		DisplayUtilities.display("transformed query", query2);
+		DisplayUtilities.display(ImageUtilities
+				.createBufferedImageForDisplay(query2),"transformed query" );
 
 		System.out.println("subtracting...");
 		System.out.println(target.getHeight() + " " + target.getWidth());
@@ -421,20 +424,21 @@ public class App extends JFrame implements ActionListener {
 				Math.abs(hei - target.getHeight()));
 
 		System.out.println(target2.getHeight() + " " + target2.getWidth());
-		DisplayUtilities.display(target2);
+		DisplayUtilities.display(target2, "Padded target");
 		System.out.println(query2.getHeight() + " " + query2.getWidth());
 
 		query2 = query2.paddingSymmetric(0, Math.abs(wth - query2.getWidth()),
 				0, Math.abs(hei - query2.getHeight()));
-		DisplayUtilities.display(query2);
+		DisplayUtilities.display(query2,"Padded transformed query");
 		System.out.println(query2.getHeight() + " " + query2.getWidth());
 
 		System.out.println("display subtraction");
 
-		DisplayUtilities.display("Keypoint Matches", consistentMatches);
+		DisplayUtilities.display( ImageUtilities
+				.createBufferedImageForDisplay(consistentMatches),"Keypoint Matches");
 
 		DisplayUtilities.display(ImageUtilities
-				.createBufferedImageForDisplay(target2.subtract(query2).abs()));
+				.createBufferedImageForDisplay(target2.subtract(query2).abs()), "Subtracted Img");
 
 		// */
 		return null;// (ImageUtilities.createBufferedImageForDisplay(target));
