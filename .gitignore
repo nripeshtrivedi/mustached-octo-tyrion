@@ -1,2 +1,5 @@
 resources
 target
+.classpath
+.project
+.settings
