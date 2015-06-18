@@ -42,6 +42,7 @@ import org.openimaj.feature.local.matcher.MatchingUtilities;
 import org.openimaj.feature.local.matcher.consistent.ConsistentLocalFeatureMatcher2d;
 import org.openimaj.feature.local.matcher.consistent.LocalConsistentKeypointMatcher;
 import org.openimaj.image.DisplayUtilities;
+import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
 import org.openimaj.image.MBFImage;
 import org.openimaj.image.colour.RGBColour;
@@ -55,6 +56,9 @@ import org.openimaj.image.feature.local.keypoints.InterestPointKeypoint;
 import org.openimaj.image.feature.local.keypoints.Keypoint;
 import org.openimaj.image.feature.local.keypoints.KeypointVisualizer;
 import org.openimaj.image.processing.background.BasicBackgroundSubtract;
+import org.openimaj.image.processing.convolution.FFastGaussianConvolve;
+import org.openimaj.image.processing.convolution.Gaussian2D;
+import org.openimaj.image.processing.threshold.AdaptiveLocalThresholdContrast;
 import org.openimaj.math.geometry.transforms.estimation.RobustAffineTransformEstimator;
 import org.openimaj.math.model.fit.RANSAC;
 
@@ -181,8 +185,8 @@ public class App extends JFrame implements ActionListener {
 		int[] banks = new int[bandCount];
 		int[] offsets = new int[bandCount];
 
-		int xsize = 2000;// 6000;//6297;//poDataset.getRasterXSize();
-		int ysize = 2000; //5000;// 5529;//poDataset.getRasterYSize();
+		int xsize = 3000;// 6297;// 6000;//6297;//poDataset.getRasterXSize();
+		int ysize = 3000; // 5529; // 5000;// 5529;//poDataset.getRasterYSize();
 		int pixels = xsize * ysize;
 		int buf_type = 0, buf_size = 0;
 
@@ -335,15 +339,15 @@ public class App extends JFrame implements ActionListener {
 		return engine;
 	}
 
-	public BufferedImage subtract(File files[] ) {
-		MBFImage query = ImageUtilities.createMBFImage(openFile(files[0]), false);
-		MBFImage target = ImageUtilities.createMBFImage(openFile(files[1]), false);
-		//MBFImage sub = ImageUtilities.createMBFImage(openFile(files[2]), false);
-		
-		DisplayUtilities.display(ImageUtilities
-				.createBufferedImageForDisplay( query),"query");
-		DisplayUtilities.display(ImageUtilities
-				.createBufferedImageForDisplay(target),"target");
+	public BufferedImage subtract(File files[]) {
+		FImage query = ImageUtilities.createFImage(openFile(files[0]));
+		FImage target = ImageUtilities.createFImage(openFile(files[1]));
+		FImage sub = ImageUtilities.createFImage(openFile(files[2]));
+
+		DisplayUtilities.display(
+				ImageUtilities.createBufferedImageForDisplay(query), "query");
+		DisplayUtilities.display(
+				ImageUtilities.createBufferedImageForDisplay(target), "target");
 
 		/*
 		 * BasicBackgroundSubtract<MBFImage> test = new
@@ -360,12 +364,9 @@ public class App extends JFrame implements ActionListener {
 		//
 
 		DoGSIFTEngine engine = new DoGSIFTEngine();
-		LocalFeatureList<Keypoint> queryKeypoints = engine.findFeatures(query
-				.flatten());
-		LocalFeatureList<Keypoint> targetKeypoints = engine.findFeatures(target
-				.flatten());
-		//LocalFeatureList<Keypoint> subKeypoints = engine.findFeatures(sub
-			//	.flatten());
+		LocalFeatureList<Keypoint> queryKeypoints = engine.findFeatures(query);
+		LocalFeatureList<Keypoint> targetKeypoints = engine.findFeatures(target);
+		LocalFeatureList<Keypoint> subKeypoints = engine.findFeatures(sub);
 
 		// System.out.println(queryKeypoints);
 
@@ -384,42 +385,45 @@ public class App extends JFrame implements ActionListener {
 		 * matcher.setFittingModel(modelFitter);
 		 */
 		RobustAffineTransformEstimator modelFitter = new RobustAffineTransformEstimator(
-				5.0, 200, new RANSAC.PercentageInliersStoppingCondition(0.5));
+				5.0, 600, new RANSAC.PercentageInliersStoppingCondition(0.5));
 		LocalFeatureMatcher<Keypoint> matcher = new ConsistentLocalFeatureMatcher2d<Keypoint>(
 				new FastBasicKeypointMatcher<Keypoint>(8), modelFitter);
 
 		matcher.setModelFeatures(queryKeypoints);
 		matcher.findMatches(targetKeypoints);
-		
-//		RobustAffineTransformEstimator submodelFitter = new RobustAffineTransformEstimator(
-//				5.0, 200, new RANSAC.PercentageInliersStoppingCondition(0.5));
-//		LocalFeatureMatcher<Keypoint> submatcher = new ConsistentLocalFeatureMatcher2d<Keypoint>(
-//				new FastBasicKeypointMatcher<Keypoint>(8), modelFitter);
-//
-//		submatcher.setModelFeatures(subKeypoints);
-//		submatcher.findMatches(targetKeypoints);
 
-		MBFImage consistentMatches = MatchingUtilities.drawMatches(query,
-				target, matcher.getMatches(), RGBColour.RED);
+		RobustAffineTransformEstimator submodelFitter = new RobustAffineTransformEstimator(
+				5.0, 600, new RANSAC.PercentageInliersStoppingCondition(0.5));
+		LocalFeatureMatcher<Keypoint> submatcher = new ConsistentLocalFeatureMatcher2d<Keypoint>(
+				new FastBasicKeypointMatcher<Keypoint>(8), submodelFitter);
 
-		MBFImage query2 = query.transform(modelFitter.getModel().getTransform()
+		submatcher.setModelFeatures(subKeypoints);
+		submatcher.findMatches(targetKeypoints);
+
+//		FImage consistentMatches = MatchingUtilities.drawMatches(query,
+//				target, matcher.getMatches(), RGBColour.RED);
+//		FImage consistentMatches2 = MatchingUtilities.drawMatches(sub,
+//				target, submatcher.getMatches(), RGBColour.RED);
+
+		FImage query2 = query.transform(modelFitter.getModel().getTransform()
 				.inverse());
-//		MBFImage subimg = sub.transform(submodelFitter.getModel().getTransform().inverse());
-		
-		
-		
+		FImage subimg = sub.transform(submodelFitter.getModel()
+				.getTransform().inverse());
 
-		int hei = Math.max(target.getHeight(), query2.getHeight());
-		int wth = Math.max(target.getWidth(), query2.getWidth());
+		int hei = Math.max(target.getHeight(),
+				Math.max(query2.getHeight(), subimg.getHeight()));
+		int wth = Math.max(target.getWidth(),
+				Math.max(query2.getWidth(), subimg.getWidth()));
 		System.out.println(hei + " " + wth);
 
-		DisplayUtilities.display(ImageUtilities
-				.createBufferedImageForDisplay(query2),"transformed query" );
+		DisplayUtilities.display(
+				ImageUtilities.createBufferedImageForDisplay(query2),
+				"transformed query");
 
 		System.out.println("subtracting...");
 		System.out.println(target.getHeight() + " " + target.getWidth());
 
-		MBFImage target2 = target.paddingSymmetric(0,
+		FImage target2 = target.paddingSymmetric(0,
 				Math.abs(wth - target.getWidth()), 0,
 				Math.abs(hei - target.getHeight()));
 
@@ -429,16 +433,55 @@ public class App extends JFrame implements ActionListener {
 
 		query2 = query2.paddingSymmetric(0, Math.abs(wth - query2.getWidth()),
 				0, Math.abs(hei - query2.getHeight()));
-		DisplayUtilities.display(query2,"Padded transformed query");
+		subimg = subimg.paddingSymmetric(0, Math.abs(wth - subimg.getWidth()),
+				0, Math.abs(hei - subimg.getHeight()));
+		DisplayUtilities.display(query2, "Padded transformed query");
 		System.out.println(query2.getHeight() + " " + query2.getWidth());
 
 		System.out.println("display subtraction");
 
-		DisplayUtilities.display( ImageUtilities
-				.createBufferedImageForDisplay(consistentMatches),"Keypoint Matches");
+//		DisplayUtilities
+//				.display(ImageUtilities
+//						.createBufferedImageForDisplay(consistentMatches),
+//						"Keypoint Matches");
 
-		DisplayUtilities.display(ImageUtilities
-				.createBufferedImageForDisplay(target2.subtract(query2).abs()), "Subtracted Img");
+		DisplayUtilities.display(
+				ImageUtilities.createBufferedImageForDisplay(target2.subtract(
+						query2).abs()), "Subtracted Img");
+		
+		FImage median = new FImage(wth, hei);
+		for (int i = 0; i < hei; i++) {
+			for (int j = 0; j < wth; j++) {
+				
+				float a = query2.getPixelNative(j, i);
+				float b = target2.getPixelNative(j, i) ;
+				float c = subimg.getPixelNative(j, i) ;
+				float val = Math.max(Math.min(a,b), Math.min(Math.max(a,b),c));
+
+				median.setPixelNative(j, i, val);
+			}
+		}
+		
+		DisplayUtilities.display(median, "median");
+		
+		DisplayUtilities.display(query2.subtract(median), "query - median");
+		DisplayUtilities.display(target2.subtract(median), "target - median");
+		DisplayUtilities.display(subimg.subtract(median), "subimg - median");
+		
+		
+		AdaptiveLocalThresholdContrast gaus = new AdaptiveLocalThresholdContrast( 5);
+		
+		query2.subtractInplace(median);
+		target2.subtractInplace(median);
+		subimg.subtractInplace(median);
+		
+//		gaus.processImage(query2);		
+//		gaus.processImage(target2);
+//		gaus.processImage(subimg);
+//		
+//		DisplayUtilities.display(query2, "gaus query - median");
+//		DisplayUtilities.display(target2, "gaus target - median");
+//		DisplayUtilities.display(subimg , "gaus subimg - median");
 
 		// */
 		return null;// (ImageUtilities.createBufferedImageForDisplay(target));
