@@ -59,6 +59,7 @@ import org.openimaj.image.processing.background.BasicBackgroundSubtract;
 import org.openimaj.image.processing.convolution.FFastGaussianConvolve;
 import org.openimaj.image.processing.convolution.Gaussian2D;
 import org.openimaj.image.processing.threshold.AdaptiveLocalThresholdContrast;
+import org.openimaj.image.processing.threshold.AdaptiveLocalThresholdGaussian;
 import org.openimaj.math.geometry.transforms.estimation.RobustAffineTransformEstimator;
 import org.openimaj.math.model.fit.RANSAC;
 
@@ -469,19 +470,19 @@ public class App extends JFrame implements ActionListener {
 		DisplayUtilities.display(subimg.subtract(median), "subimg - median");
 		
 		
-		AdaptiveLocalThresholdContrast gaus = new AdaptiveLocalThresholdContrast( 5);
+		AdaptiveLocalThresholdGaussian gaus = new AdaptiveLocalThresholdGaussian( 1.8f,0.2f);
 		
 		query2.subtractInplace(median);
 		target2.subtractInplace(median);
 		subimg.subtractInplace(median);
 		
-//		gaus.processImage(query2);		
-//		gaus.processImage(target2);
-//		gaus.processImage(subimg);
-//		
-//		DisplayUtilities.display(query2, "gaus query - median");
-//		DisplayUtilities.display(target2, "gaus target - median");
-//		DisplayUtilities.display(subimg , "gaus subimg - median");
+		gaus.processImage(query2);		
+		gaus.processImage(target2);
+		gaus.processImage(subimg);
+		
+		DisplayUtilities.display(query2, "gaus query - median");
+		DisplayUtilities.display(target2, "gaus target - median");
+		DisplayUtilities.display(subimg , "gaus subimg - median");
 
 		// */
 		return null;// (ImageUtilities.createBufferedImageForDisplay(target));
